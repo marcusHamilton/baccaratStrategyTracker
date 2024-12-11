@@ -12,8 +12,8 @@ const BETTING_PATTERN = [
 
 export default function BaccaratStrategyTracker() {
   const [isDarkMode, setIsDarkMode] = useState(false);
-  const [startingBet, setStartingBet] = useState(10);
-  const [currentBet, setCurrentBet] = useState(10);
+  const [startingBet, setStartingBet] = useState(1);
+  const [currentBet, setCurrentBet] = useState(1);
   const [currentPatternIndex, setCurrentPatternIndex] = useState(0);
   const [isInitialized, setIsInitialized] = useState(false);
 
