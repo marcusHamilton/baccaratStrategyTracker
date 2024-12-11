@@ -1,6 +1,23 @@
 import { useState, useEffect } from "preact/hooks";
 import { IS_BROWSER } from "$fresh/runtime.ts";
 
+// Define types for our history tracking
+type GameAction = {
+  type: "win" | "lose" | "tie";
+  bet: number;
+  patternIndex: number;
+  amount: number;
+};
+
+type GameState = {
+  wins: number;
+  losses: number;
+  ties: number;
+  totalAmount: number;
+  currentBet: number;
+  currentPatternIndex: number;
+};
+
 const BETTING_PATTERN = [
   { position: "Player", nextIfLost: 1, color: "blue" },
   { position: "Banker", nextIfLost: 2, color: "red" },
@@ -19,20 +36,22 @@ export default function BaccaratStrategyTracker() {
   const [currentPatternIndex, setCurrentPatternIndex] = useState(0);
   const [isInitialized, setIsInitialized] = useState(false);
 
+  // Enhanced statistics
   const [wins, setWins] = useState(0);
   const [losses, setLosses] = useState(0);
+  const [ties, setTies] = useState(0);
   const [totalAmount, setTotalAmount] = useState(0);
 
-  // Toggle dark mode
-  const toggleDarkMode = () => {
-    const newMode = !isDarkMode;
-    setIsDarkMode(newMode);
-    if (IS_BROWSER) {
-      localStorage.setItem("baccarat-dark-mode", JSON.stringify(newMode));
-    }
-  };
+  // Animation states
+  const [winAnimation, setWinAnimation] = useState(false);
+  const [loseAnimation, setLoseAnimation] = useState(false);
+  const [tieAnimation, setTieAnimation] = useState(false);
 
-  // Load dark mode preference from localStorage on component mount
+  // History tracking for undo/redo
+  const [history, setHistory] = useState<GameAction[]>([]);
+  const [historyIndex, setHistoryIndex] = useState(-1);
+
+  // Load dark mode preference from localStorage
   useEffect(() => {
     if (IS_BROWSER) {
       const savedDarkMode = localStorage.getItem("baccarat-dark-mode");
@@ -42,7 +61,14 @@ export default function BaccaratStrategyTracker() {
     }
   }, []);
 
-  // Initialize the app with starting bet and payouts
+  const toggleDarkMode = () => {
+    const newMode = !isDarkMode;
+    setIsDarkMode(newMode);
+    if (IS_BROWSER) {
+      localStorage.setItem("baccarat-dark-mode", JSON.stringify(newMode));
+    }
+  };
+
   const initializeTracker = (
     initialBet: number,
     initialPlayerPayout: number,
@@ -54,55 +80,133 @@ export default function BaccaratStrategyTracker() {
     setCurrentBet(initialBet);
     setCurrentPatternIndex(0);
     setIsInitialized(true);
-    // Reset tracking stats
     setWins(0);
     setLosses(0);
+    setTies(0);
     setTotalAmount(0);
+    setHistory([]);
+    setHistoryIndex(-1);
   };
 
-  // Handle a winning hand
+  const addToHistory = (action: GameAction) => {
+    const newHistory = [...history.slice(0, historyIndex + 1), action];
+    setHistory(newHistory);
+    setHistoryIndex(newHistory.length - 1);
+  };
+
   const handleWin = () => {
-    // Determine payout based on current betting position
     const currentPosition = BETTING_PATTERN[currentPatternIndex].position;
     const winAmount =
       currentPosition === "Player"
         ? currentBet * playerPayout
         : currentBet * bankerPayout;
 
-    // Update wins and total amount
     setWins((prev) => prev + 1);
     setTotalAmount((prev) => prev + winAmount);
+    setWinAnimation(true);
+    setTimeout(() => setWinAnimation(false), 500);
 
-    // Reset to original bet and start of pattern
+    addToHistory({
+      type: "win",
+      bet: currentBet,
+      patternIndex: currentPatternIndex,
+      amount: winAmount,
+    });
+
     setCurrentBet(startingBet);
     setCurrentPatternIndex(0);
   };
 
-  // Handle a losing hand
   const handleLose = () => {
-    // Update losses and total amount
     setLosses((prev) => prev + 1);
     setTotalAmount((prev) => prev - currentBet);
+    setLoseAnimation(true);
+    setTimeout(() => setLoseAnimation(false), 500);
 
-    // Double the bet and move to next position in pattern
+    addToHistory({
+      type: "lose",
+      bet: currentBet,
+      patternIndex: currentPatternIndex,
+      amount: -currentBet,
+    });
+
     const nextIndex = BETTING_PATTERN[currentPatternIndex].nextIfLost;
-    setCurrentBet((prevBet) => prevBet * 2);
+    setCurrentBet((prev) => prev * 2);
     setCurrentPatternIndex(nextIndex);
   };
 
-  // Handle a tie (repeat current bet and position)
   const handleTie = () => {
-    // Do nothing - stay on same bet and position
+    setTies((prev) => prev + 1);
+    setTieAnimation(true);
+    setTimeout(() => setTieAnimation(false), 500);
+
+    addToHistory({
+      type: "tie",
+      bet: currentBet,
+      patternIndex: currentPatternIndex,
+      amount: 0,
+    });
   };
 
-  // Calculate win percentage
+  const handleUndo = () => {
+    if (historyIndex >= 0) {
+      const lastAction = history[historyIndex];
+      // Reverse the last action
+      switch (lastAction.type) {
+        case "win":
+          setWins((prev) => prev - 1);
+          setTotalAmount((prev) => prev - lastAction.amount);
+          break;
+        case "lose":
+          setLosses((prev) => prev - 1);
+          setTotalAmount((prev) => prev - lastAction.amount);
+          break;
+        case "tie":
+          setTies((prev) => prev - 1);
+          break;
+      }
+      setHistoryIndex((prev) => prev - 1);
+      // Reset to previous state
+      setCurrentBet(lastAction.bet);
+      setCurrentPatternIndex(lastAction.patternIndex);
+    }
+  };
+
+  const handleRedo = () => {
+    if (historyIndex < history.length - 1) {
+      const nextAction = history[historyIndex + 1];
+      // Reapply the action
+      switch (nextAction.type) {
+        case "win":
+          setWins((prev) => prev + 1);
+          setTotalAmount((prev) => prev + nextAction.amount);
+          break;
+        case "lose":
+          setLosses((prev) => prev + 1);
+          setTotalAmount((prev) => prev + nextAction.amount);
+          break;
+        case "tie":
+          setTies((prev) => prev + 1);
+          break;
+      }
+      setHistoryIndex((prev) => prev + 1);
+      // Update current state
+      if (nextAction.type === "win") {
+        setCurrentBet(startingBet);
+        setCurrentPatternIndex(0);
+      } else if (nextAction.type === "lose") {
+        setCurrentBet((prev) => prev * 2);
+        setCurrentPatternIndex(
+          BETTING_PATTERN[nextAction.patternIndex].nextIfLost
+        );
+      }
+    }
+  };
+
+  const totalHands = wins + losses + ties;
   const winPercentage =
-    wins + losses > 0 ? Math.round((wins / (wins + losses)) * 100) : 0;
+    totalHands > 0 ? Math.round((wins / (wins + losses)) * 100) : 0;
 
-  // Determine color classes based on current position
-  const currentPositionColor = BETTING_PATTERN[currentPatternIndex].color;
-
-  // Dynamic base classes for light/dark mode
   const bgClass = isDarkMode
     ? "bg-gray-900 text-gray-100"
     : "bg-gray-100 text-gray-900";
@@ -113,7 +217,19 @@ export default function BaccaratStrategyTracker() {
     ? "bg-gray-700 border-gray-600 text-gray-100 placeholder-gray-400"
     : "bg-white border-gray-300 text-gray-900";
 
-  // If not initialized, show bet input
+  // Button animation classes
+  const buttonBaseClass =
+    "transition-all duration-300 transform active:scale-95";
+  const winButtonClass = `${buttonBaseClass} ${
+    winAnimation ? "scale-110 brightness-110" : ""
+  }`;
+  const loseButtonClass = `${buttonBaseClass} ${
+    loseAnimation ? "scale-90 brightness-90" : ""
+  }`;
+  const tieButtonClass = `${buttonBaseClass} ${
+    tieAnimation ? "scale-105 brightness-105" : ""
+  }`;
+
   if (!isInitialized) {
     return (
       <div
@@ -122,7 +238,6 @@ export default function BaccaratStrategyTracker() {
         <div
           className={`relative w-full max-w-md p-8 rounded-xl border ${cardClass} transition-all duration-300`}
         >
-          {/* Dark mode toggle */}
           <button
             onClick={toggleDarkMode}
             className="absolute top-4 right-4 p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 transition"
@@ -207,7 +322,6 @@ export default function BaccaratStrategyTracker() {
     );
   }
 
-  // Main tracking interface
   return (
     <div
       className={`flex flex-col items-center justify-center min-h-screen ${bgClass} p-4 transition-colors duration-300`}
@@ -215,7 +329,6 @@ export default function BaccaratStrategyTracker() {
       <div
         className={`relative w-full max-w-md p-8 rounded-xl border ${cardClass} transition-all duration-300`}
       >
-        {/* Dark mode toggle */}
         <button
           onClick={toggleDarkMode}
           className="absolute top-4 right-4 p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 transition"
@@ -241,17 +354,14 @@ export default function BaccaratStrategyTracker() {
             <span className="font-semibold">Bet On:</span>
             <span
               className={`ml-2 px-3 py-1 rounded-full font-bold 
-                ${
-                  currentPositionColor === "blue"
-                    ? "bg-blue-500 text-white"
-                    : "bg-red-500 text-white"
-                }`}
+              ${
+                BETTING_PATTERN[currentPatternIndex].color === "blue"
+                  ? "bg-blue-500 text-white"
+                  : "bg-red-500 text-white"
+              }`}
             >
               {BETTING_PATTERN[currentPatternIndex].position}
             </span>
-          </div>
-          <div className="text-sm text-gray-600 dark:text-gray-400">
-            Player Payout: {playerPayout}:1 | Banker Payout: {bankerPayout}:1
           </div>
         </div>
 
@@ -259,40 +369,70 @@ export default function BaccaratStrategyTracker() {
         <div className="grid grid-cols-3 gap-4 mb-6">
           <button
             onClick={handleWin}
-            className="bg-green-500 text-white p-3 rounded-lg hover:bg-green-600 transition transform hover:scale-105 focus:outline-none focus:ring-2"
+            className={`${winButtonClass} bg-green-500 text-white p-3 rounded-lg hover:bg-green-600`}
           >
             Won
           </button>
           <button
             onClick={handleLose}
-            className="bg-red-500 text-white p-3 rounded-lg hover:bg-red-600 transition transform hover:scale-105 focus:outline-none focus:ring-2"
+            className={`${loseButtonClass} bg-red-500 text-white p-3 rounded-lg hover:bg-red-600`}
           >
             Lost
           </button>
           <button
             onClick={handleTie}
-            className="bg-yellow-500 text-white p-3 rounded-lg hover:bg-yellow-600 transition transform hover:scale-105 focus:outline-none focus:ring-2"
+            className={`${tieButtonClass} bg-yellow-500 text-white p-3 rounded-lg hover:bg-yellow-600`}
           >
             Tie
           </button>
         </div>
 
-        {/* Tracking Statistics */}
+        {/* Undo/Redo Buttons */}
+        <div className="flex justify-center gap-4 mb-6">
+          <button
+            onClick={handleUndo}
+            disabled={historyIndex < 0}
+            className={`px-4 py-2 rounded-lg ${
+              historyIndex < 0
+                ? "opacity-50 cursor-not-allowed"
+                : "hover:bg-gray-700"
+            } bg-gray-600 text-white transition`}
+          >
+            ↩ Undo
+          </button>
+          <button
+            onClick={handleRedo}
+            disabled={historyIndex >= history.length - 1}
+            className={`px-4 py-2 rounded-lg ${
+              historyIndex >= history.length - 1
+                ? "opacity-50 cursor-not-allowed"
+                : "hover:bg-gray-700"
+            } bg-gray-600 text-white transition`}
+          >
+            Redo ↪
+          </button>
+        </div>
+
+        {/* Enhanced Statistics Display */}
         <div
-          className={`grid grid-cols-2 gap-4 mb-6 p-4 rounded-lg transition-colors duration-300 
-          ${
+          className={`grid grid-cols-2 gap-4 mb-6 p-4 rounded-lg ${
             isDarkMode
               ? "bg-gray-800 border border-gray-700"
               : "bg-gray-100 border border-gray-200"
           }`}
         >
+          <div className="text-center col-span-2">
+            <div className="text-sm uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-1">
+              Total Hands
+            </div>
+            <div className="text-2xl font-bold">{totalHands}</div>
+          </div>
           <div className="text-center">
             <div className="text-sm uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-1">
               Win Rate
             </div>
             <div
-              className={`text-2xl font-bold transition-colors 
-              ${
+              className={`text-2xl font-bold ${
                 winPercentage >= 50
                   ? "text-green-600 dark:text-green-400"
                   : "text-red-600 dark:text-red-400"
@@ -306,8 +446,7 @@ export default function BaccaratStrategyTracker() {
               Total Profit
             </div>
             <div
-              className={`text-2xl font-bold transition-colors 
-              ${
+              className={`text-2xl font-bold ${
                 totalAmount >= 0
                   ? "text-green-600 dark:text-green-400"
                   : "text-red-600 dark:text-red-400"
