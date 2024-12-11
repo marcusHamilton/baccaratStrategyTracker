@@ -13,6 +13,8 @@ const BETTING_PATTERN = [
 export default function BaccaratStrategyTracker() {
   const [isDarkMode, setIsDarkMode] = useState(false);
   const [startingBet, setStartingBet] = useState(1);
+  const [playerPayout, setPlayerPayout] = useState(1);
+  const [bankerPayout, setBankerPayout] = useState(0.95);
   const [currentBet, setCurrentBet] = useState(1);
   const [currentPatternIndex, setCurrentPatternIndex] = useState(0);
   const [isInitialized, setIsInitialized] = useState(false);
@@ -40,9 +42,15 @@ export default function BaccaratStrategyTracker() {
     }
   }, []);
 
-  // Initialize the app with a starting bet
-  const initializeTracker = (initialBet: number) => {
+  // Initialize the app with starting bet and payouts
+  const initializeTracker = (
+    initialBet: number,
+    initialPlayerPayout: number,
+    initialBankerPayout: number
+  ) => {
     setStartingBet(initialBet);
+    setPlayerPayout(initialPlayerPayout);
+    setBankerPayout(initialBankerPayout);
     setCurrentBet(initialBet);
     setCurrentPatternIndex(0);
     setIsInitialized(true);
@@ -54,9 +62,16 @@ export default function BaccaratStrategyTracker() {
 
   // Handle a winning hand
   const handleWin = () => {
+    // Determine payout based on current betting position
+    const currentPosition = BETTING_PATTERN[currentPatternIndex].position;
+    const winAmount =
+      currentPosition === "Player"
+        ? currentBet * playerPayout
+        : currentBet * bankerPayout;
+
     // Update wins and total amount
     setWins((prev) => prev + 1);
-    setTotalAmount((prev) => prev + currentBet);
+    setTotalAmount((prev) => prev + winAmount);
 
     // Reset to original bet and start of pattern
     setCurrentBet(startingBet);
@@ -130,6 +145,7 @@ export default function BaccaratStrategyTracker() {
                 id="starting-bet"
                 type="number"
                 min="1"
+                step="0.01"
                 value={startingBet}
                 onInput={(e) =>
                   setStartingBet(Number((e.target as HTMLInputElement).value))
@@ -139,8 +155,48 @@ export default function BaccaratStrategyTracker() {
               />
             </div>
 
+            <div>
+              <label htmlFor="player-payout" className="block mb-2 font-medium">
+                Player Payout Ratio (1:1 = 1)
+              </label>
+              <input
+                id="player-payout"
+                type="number"
+                min="0.5"
+                max="2"
+                step="0.01"
+                value={playerPayout}
+                onInput={(e) =>
+                  setPlayerPayout(Number((e.target as HTMLInputElement).value))
+                }
+                className={`w-full p-3 border rounded-lg focus:ring-2 focus:outline-none ${inputClass}`}
+                placeholder="Player bet payout ratio"
+              />
+            </div>
+
+            <div>
+              <label htmlFor="banker-payout" className="block mb-2 font-medium">
+                Banker Payout Ratio (0.95 = standard)
+              </label>
+              <input
+                id="banker-payout"
+                type="number"
+                min="0.5"
+                max="2"
+                step="0.01"
+                value={bankerPayout}
+                onInput={(e) =>
+                  setBankerPayout(Number((e.target as HTMLInputElement).value))
+                }
+                className={`w-full p-3 border rounded-lg focus:ring-2 focus:outline-none ${inputClass}`}
+                placeholder="Banker bet payout ratio"
+              />
+            </div>
+
             <button
-              onClick={() => initializeTracker(startingBet)}
+              onClick={() =>
+                initializeTracker(startingBet, playerPayout, bankerPayout)
+              }
               className="w-full bg-gradient-to-r from-blue-500 to-purple-600 text-white p-3 rounded-lg hover:from-blue-600 hover:to-purple-700 transition transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-offset-2"
             >
               Start Tracking
@@ -193,6 +249,9 @@ export default function BaccaratStrategyTracker() {
             >
               {BETTING_PATTERN[currentPatternIndex].position}
             </span>
+          </div>
+          <div className="text-sm text-gray-600 dark:text-gray-400">
+            Player Payout: {playerPayout}:1 | Banker Payout: {bankerPayout}:1
           </div>
         </div>
 
@@ -254,7 +313,7 @@ export default function BaccaratStrategyTracker() {
                   : "text-red-600 dark:text-red-400"
               }`}
             >
-              ${totalAmount}
+              ${totalAmount.toFixed(2)}
             </div>
           </div>
         </div>
