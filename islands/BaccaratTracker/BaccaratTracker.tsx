@@ -212,9 +212,6 @@ export default function BaccaratTracker() {
                   onWin={handleWin}
                   onLose={handleLose}
                   onTie={handleTie}
-                  winAnimation={winAnimation}
-                  loseAnimation={loseAnimation}
-                  tieAnimation={tieAnimation}
                 />
 
                 <Statistics gameState={gameState} isDarkMode={isDarkMode} />
