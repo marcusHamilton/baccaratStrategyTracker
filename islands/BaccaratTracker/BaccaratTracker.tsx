@@ -22,9 +22,6 @@ export default function BaccaratTracker() {
   const [startingBet, setStartingBet] = useState(1);
   const [playerPayout, setPlayerPayout] = useState(1);
   const [bankerPayout, setBankerPayout] = useState(0.95);
-  const [winAnimation, setWinAnimation] = useState(false);
-  const [loseAnimation, setLoseAnimation] = useState(false);
-  const [tieAnimation, setTieAnimation] = useState(false);
 
   const [gameState, setGameState] = useState<GameState>({
     wins: 0,
@@ -109,9 +106,6 @@ export default function BaccaratTracker() {
       patternIndex: gameState.currentPatternIndex,
       amount: winAmount,
     });
-
-    setWinAnimation(true);
-    setTimeout(() => setWinAnimation(false), 500);
   };
 
   const handleLose = () => {
@@ -129,9 +123,6 @@ export default function BaccaratTracker() {
       patternIndex: gameState.currentPatternIndex,
       amount: -gameState.currentBet,
     });
-
-    setLoseAnimation(true);
-    setTimeout(() => setLoseAnimation(false), 500);
   };
 
   const handleTie = () => {
@@ -146,9 +137,6 @@ export default function BaccaratTracker() {
       patternIndex: gameState.currentPatternIndex,
       amount: 0,
     });
-
-    setTieAnimation(true);
-    setTimeout(() => setTieAnimation(false), 500);
   };
 
   const handleInitialize = (settings: {
