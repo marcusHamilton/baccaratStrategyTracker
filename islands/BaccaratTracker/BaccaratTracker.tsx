@@ -22,6 +22,8 @@ export default function BaccaratTracker() {
   const [startingBet, setStartingBet] = useState(1);
   const [playerPayout, setPlayerPayout] = useState(1);
   const [bankerPayout, setBankerPayout] = useState(0.95);
+  const [historyIndex, setHistoryIndex] = useState(-1);
+  const [actionHistory, setActionHistory] = useState<GameAction[]>([]);
 
   const [gameState, setGameState] = useState<GameState>({
     wins: 0,
@@ -45,6 +47,8 @@ export default function BaccaratTracker() {
       if (savedState) {
         setGameState(savedState.gameState);
         setHistory(savedState.history);
+        setActionHistory(savedState.actionHistory || []);
+        setHistoryIndex(savedState.historyIndex ?? -1);
         setIsInitialized(true);
         setStartingBet(savedState.startingBet);
         setPlayerPayout(savedState.playerPayout);
@@ -62,9 +66,19 @@ export default function BaccaratTracker() {
         startingBet,
         playerPayout,
         bankerPayout,
+        actionHistory,
+        historyIndex,
       });
     }
-  }, [gameState, history, startingBet, playerPayout, bankerPayout]);
+  }, [
+    gameState,
+    history,
+    startingBet,
+    playerPayout,
+    bankerPayout,
+    actionHistory,
+    historyIndex,
+  ]);
 
   const toggleDarkMode = () => {
     const newMode = !isDarkMode;
@@ -82,6 +96,8 @@ export default function BaccaratTracker() {
       timestamp: Date.now(),
     };
     setHistory((prev) => [...prev, newAction]);
+    setActionHistory((prev) => [...prev.slice(0, historyIndex + 1), newAction]);
+    setHistoryIndex((prev) => prev + 1);
   };
 
   const handleWin = () => {
@@ -139,6 +155,62 @@ export default function BaccaratTracker() {
     });
   };
 
+  const handleUndo = () => {
+    if (historyIndex >= 0) {
+      const lastAction = actionHistory[historyIndex];
+
+      // Reverse the last action
+      switch (lastAction.type) {
+        case "win":
+          setGameState((prev) => ({
+            ...prev,
+            wins: prev.wins - 1,
+            totalAmount: prev.totalAmount - lastAction.amount,
+            currentBet: startingBet,
+            currentPatternIndex: 0,
+          }));
+          break;
+        case "lose":
+          setGameState((prev) => ({
+            ...prev,
+            losses: prev.losses - 1,
+            totalAmount: prev.totalAmount + Math.abs(lastAction.amount),
+            currentBet: lastAction.bet,
+            currentPatternIndex: lastAction.patternIndex,
+          }));
+          break;
+        case "tie":
+          setGameState((prev) => ({
+            ...prev,
+            ties: prev.ties - 1,
+          }));
+          break;
+      }
+
+      setHistoryIndex((prev) => prev - 1);
+      setHistory((prev) => prev.slice(0, -1));
+    }
+  };
+
+  const handleRedo = () => {
+    if (historyIndex < actionHistory.length - 1) {
+      const nextAction = actionHistory[historyIndex + 1];
+
+      // Reapply the action
+      switch (nextAction.type) {
+        case "win":
+          handleWin();
+          break;
+        case "lose":
+          handleLose();
+          break;
+        case "tie":
+          handleTie();
+          break;
+      }
+    }
+  };
+
   const handleInitialize = (settings: {
     startingBet: number;
     playerPayout: number;
@@ -162,6 +234,8 @@ export default function BaccaratTracker() {
       currentPatternIndex: 0,
     });
     setHistory([]);
+    setActionHistory([]);
+    setHistoryIndex(-1);
     localStorage.removeItem("baccarat-game-state");
   };
 
@@ -200,6 +274,10 @@ export default function BaccaratTracker() {
                   onWin={handleWin}
                   onLose={handleLose}
                   onTie={handleTie}
+                  onUndo={handleUndo}
+                  onRedo={handleRedo}
+                  canUndo={historyIndex >= 0}
+                  canRedo={historyIndex < actionHistory.length - 1}
                 />
 
                 <Statistics gameState={gameState} isDarkMode={isDarkMode} />
