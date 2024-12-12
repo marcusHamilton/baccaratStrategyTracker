@@ -32,6 +32,7 @@ export default function BaccaratTracker() {
     totalAmount: 0,
     currentBet: 1,
     currentPatternIndex: 0,
+    startTime: Date.now(),
   });
 
   const [history, setHistory] = useState<GameAction[]>([]);
@@ -219,7 +220,7 @@ export default function BaccaratTracker() {
     setStartingBet(settings.startingBet);
     setPlayerPayout(settings.playerPayout);
     setBankerPayout(settings.bankerPayout);
-    setGameState((prev) => ({ ...prev, currentBet: settings.startingBet }));
+    setGameState((prev) => ({ ...prev, currentBet: settings.startingBet, startTime: Date.now() }));
     setIsInitialized(true);
   };
 
@@ -232,6 +233,7 @@ export default function BaccaratTracker() {
       totalAmount: 0,
       currentBet: 1,
       currentPatternIndex: 0,
+      startTime: Date.now(),
     });
     setHistory([]);
     setActionHistory([]);

@@ -14,6 +14,7 @@ export type GameState = {
   totalAmount: number;
   currentBet: number;
   currentPatternIndex: number;
+  startTime: number;
 };
 
 export type BettingPattern = {

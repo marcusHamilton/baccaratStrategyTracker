@@ -54,10 +54,10 @@ export function GameControls({
   return (
     <div class="space-y-6">
       {/* Betting position display */}
-      <div class="text-center space-y-4">
-        <div class="text-xl text-gray-900 dark:text-gray-100">
+      <div class="text-center space-y-2">
+        <div class="text-lg text-gray-900 dark:text-gray-100">
           <span class="font-semibold">Current Bet:</span>
-          <span class="ml-2 text-2xl font-bold text-green-600 dark:text-green-400">
+          <span class="ml-2 text-xl font-bold text-green-600 dark:text-green-400">
             ${currentBet}
           </span>
         </div>
@@ -161,10 +161,6 @@ export function GameControls({
         >
           Redo ↪
         </button>
-      </div>
-
-      <div class="text-center text-sm text-gray-600 dark:text-gray-400">
-        Pattern Position: {currentPatternIndex + 1}/6
       </div>
     </div>
   );
