@@ -42,7 +42,7 @@ export function Statistics({ gameState, isDarkMode }: StatisticsProps) {
 
 	return (
 		<div
-			class={`grid grid-cols-4 gap-2 p-3 rounded-lg ${
+			class={`grid grid-cols-4 gap-2 p-3 rounded-lg border-t border-gray-200 dark:border-gray-700${
 				isDarkMode
 					? 'bg-gray-800 border-gray-700'
 					: 'bg-gray-100 border-gray-200'
