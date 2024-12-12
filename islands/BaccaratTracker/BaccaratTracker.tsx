@@ -188,52 +188,57 @@ export default function BaccaratTracker() {
   }
 
   return (
-    <div class="p-4 transition-colors duration-300 text-gray-900 dark:text-gray-100">
-      <div class="container mx-auto max-w-6xl">
-        <div class="flex flex-col lg:flex-row gap-6">
-          <History
-            isDarkMode={isDarkMode}
-            history={history}
-            class="lg:w-1/3 order-2 lg:order-1"
-          />
-          <div class="lg:w-2/3 order-1 lg:order-2">
-            <Card isDarkMode={isDarkMode} class="relative p-8">
+    <div class="min-h-screen p-4 transition-colors duration-300 text-gray-900 dark:text-gray-100">
+      <div class="container mx-auto max-w-6xl h-full">
+        <div class="flex flex-col lg:flex-row gap-4 h-full">
+          {/* Game card panel - now first in DOM order */}
+          <div class="lg:w-2/3">
+            <Card isDarkMode={isDarkMode} class="relative p-4">
               <button
                 onClick={toggleDarkMode}
-                class="absolute top-4 right-4 p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 transition"
+                class="absolute top-3 right-3 p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 transition"
                 aria-label="Toggle dark mode"
               >
                 {isDarkMode ? "☀️" : "🌙"}
               </button>
 
-              <h1 class="text-3xl font-bold mb-6 text-center">
+              <h1 class="text-2xl font-bold mb-4 text-center">
                 Baccarat Strategy Tracker
               </h1>
 
-              <GameControls
-                gameState={gameState}
-                onWin={handleWin}
-                onLose={handleLose}
-                onTie={handleTie}
-                winAnimation={winAnimation}
-                loseAnimation={loseAnimation}
-                tieAnimation={tieAnimation}
-              />
+              <div class="space-y-4">
+                <GameControls
+                  gameState={gameState}
+                  onWin={handleWin}
+                  onLose={handleLose}
+                  onTie={handleTie}
+                  winAnimation={winAnimation}
+                  loseAnimation={loseAnimation}
+                  tieAnimation={tieAnimation}
+                />
 
-              <div class="my-8">
                 <Statistics gameState={gameState} isDarkMode={isDarkMode} />
-              </div>
 
-              <div class="text-center">
-                <Button
-                  variant="secondary"
-                  onClick={handleReset}
-                  class="text-sm"
-                >
-                  Reset Tracker
-                </Button>
+                <div class="text-center">
+                  <Button
+                    variant="secondary"
+                    onClick={handleReset}
+                    class="text-sm"
+                  >
+                    Reset Tracker
+                  </Button>
+                </div>
               </div>
             </Card>
+          </div>
+
+          {/* History panel */}
+          <div class="lg:w-1/3">
+            <History
+              isDarkMode={isDarkMode}
+              history={history}
+              class="lg:max-h-[calc(100vh-2rem)] lg:overflow-y-auto"
+            />
           </div>
         </div>
       </div>
