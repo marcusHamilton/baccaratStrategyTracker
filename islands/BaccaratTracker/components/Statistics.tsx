@@ -9,8 +9,9 @@ interface StatisticsProps {
 export function Statistics({ gameState, isDarkMode }: StatisticsProps) {
   const { wins, losses, ties, totalAmount, startTime } = gameState;
   const totalHands = wins + losses + ties;
-  const winPercentage =
-    totalHands > 0 ? Math.round((wins / (wins + losses)) * 100) : 0;
+  const winPercentage = totalHands > 0
+    ? Math.round((wins / (wins + losses)) * 100)
+    : 0;
 
   const [elapsedTime, setElapsedTime] = useState<string>("00:00:00");
 

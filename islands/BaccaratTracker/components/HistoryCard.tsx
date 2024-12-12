@@ -32,15 +32,15 @@ export function HistoryCard({ action, index, isDarkMode }: HistoryCardProps) {
 
       <div class="mt-1 text-sm grid grid-cols-2 gap-2">
         <div>
-          <span class="text-gray-500 dark:text-gray-400">Bet: </span>
+          <span class="text-gray-500 dark:text-gray-400">Bet:</span>
           <span>${action.bet}</span>
         </div>
         <div>
-          <span class="text-gray-500 dark:text-gray-400">Position: </span>
+          <span class="text-gray-500 dark:text-gray-400">Position:</span>
           <span>{action.position}</span>
         </div>
         <div class="col-span-2">
-          <span class="text-gray-500 dark:text-gray-400">Result: </span>
+          <span class="text-gray-500 dark:text-gray-400">Result:</span>
           <span class={action.amount >= 0 ? "text-green-500" : "text-red-500"}>
             {action.amount >= 0 ? "+" : ""}
             {action.amount.toFixed(2)}

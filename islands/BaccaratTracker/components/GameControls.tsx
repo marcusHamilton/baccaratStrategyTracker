@@ -96,10 +96,10 @@ export function GameControls({
           onClick={() => handleButtonClick(handlePlayerWon, "player")}
           class={`p-4 rounded-xl text-xl font-bold bg-blue-500 hover:bg-blue-600 text-white 
               transition-all duration-100 transform ${
-                activeButton === "player" ? "scale-95" : ""
-              } relative`}
+            activeButton === "player" ? "scale-95" : ""
+          } relative`}
         >
-          <span class="text-3xl">🧍 </span>
+          <span class="text-3xl">🧍</span>
           Player Won
           {isPlayerBet && (
             <span class="absolute right-4 top-1/2 -translate-y-1/2 bg-green-500 text-white px-3 py-1 rounded-full text-sm font-medium shadow-md flex items-center justify-center">
@@ -112,10 +112,10 @@ export function GameControls({
           onClick={() => handleButtonClick(handleBankerWon, "banker")}
           class={`p-4 rounded-xl text-xl font-bold bg-red-500 hover:bg-red-600 text-white 
               transition-all duration-100 transform ${
-                activeButton === "banker" ? "scale-95" : ""
-              } relative`}
+            activeButton === "banker" ? "scale-95" : ""
+          } relative`}
         >
-          <span class="text-3xl"> 🏦 </span>
+          <span class="text-3xl">🏦</span>
           Banker Won
           {!isPlayerBet && (
             <span class="absolute right-4 top-1/2 -translate-y-1/2 bg-green-500 text-white px-3 py-1 rounded-full text-sm font-medium shadow-md flex items-center justify-center">
@@ -128,10 +128,10 @@ export function GameControls({
           onClick={() => handleButtonClick(onTie, "tie")}
           class={`p-4 rounded-xl text-lg font-bold bg-yellow-500 hover:bg-yellow-600 text-white 
               transition-all duration-100 transform ${
-                activeButton === "tie" ? "scale-95" : ""
-              }`}
+            activeButton === "tie" ? "scale-95" : ""
+          }`}
         >
-          <span class="text-2xl">🤝 </span>
+          <span class="text-2xl">🤝</span>
           Tie Game
         </button>
       </div>
@@ -142,10 +142,10 @@ export function GameControls({
           disabled={!canUndo}
           class={`px-4 py-2 rounded-lg text-white transition-all duration-300 
             ${
-              canUndo
-                ? "bg-gray-600 hover:bg-gray-700"
-                : "bg-gray-400 cursor-not-allowed opacity-50"
-            }`}
+            canUndo
+              ? "bg-gray-600 hover:bg-gray-700"
+              : "bg-gray-400 cursor-not-allowed opacity-50"
+          }`}
         >
           ↩ Undo
         </button>
@@ -154,10 +154,10 @@ export function GameControls({
           disabled={!canRedo}
           class={`px-4 py-2 rounded-lg text-white transition-all duration-300 
             ${
-              canRedo
-                ? "bg-gray-600 hover:bg-gray-700"
-                : "bg-gray-400 cursor-not-allowed opacity-50"
-            }`}
+            canRedo
+              ? "bg-gray-600 hover:bg-gray-700"
+              : "bg-gray-400 cursor-not-allowed opacity-50"
+          }`}
         >
           Redo ↪
         </button>

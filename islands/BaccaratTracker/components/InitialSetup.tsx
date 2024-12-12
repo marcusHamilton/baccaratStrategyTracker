@@ -57,8 +57,7 @@ export function InitialSetup({
               step="0.01"
               value={startingBet}
               onInput={(e) =>
-                setStartingBet(Number((e.target as HTMLInputElement).value))
-              }
+                setStartingBet(Number((e.target as HTMLInputElement).value))}
               class={`w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none ${inputClass}`}
             />
           </div>
@@ -72,8 +71,7 @@ export function InitialSetup({
               step="0.01"
               value={playerPayout}
               onInput={(e) =>
-                setPlayerPayout(Number((e.target as HTMLInputElement).value))
-              }
+                setPlayerPayout(Number((e.target as HTMLInputElement).value))}
               class={`w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none ${inputClass}`}
             />
           </div>
@@ -89,16 +87,14 @@ export function InitialSetup({
               step="0.01"
               value={bankerPayout}
               onInput={(e) =>
-                setBankerPayout(Number((e.target as HTMLInputElement).value))
-              }
+                setBankerPayout(Number((e.target as HTMLInputElement).value))}
               class={`w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none ${inputClass}`}
             />
           </div>
 
           <Button
             onClick={() =>
-              onInitialize({ startingBet, playerPayout, bankerPayout })
-            }
+              onInitialize({ startingBet, playerPayout, bankerPayout })}
             class="w-full bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white font-medium py-3 rounded-lg transition transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
           >
             Start Tracking

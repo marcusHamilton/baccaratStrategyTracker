@@ -1,4 +1,4 @@
-import { useState, useEffect } from "preact/hooks";
+import { useEffect, useState } from "preact/hooks";
 import { IS_BROWSER } from "$fresh/runtime.ts";
 import { Card } from "../../components/shared/Card.tsx";
 import { Button } from "../../components/shared/Button.tsx";
@@ -6,12 +6,12 @@ import { InitialSetup } from "./components/InitialSetup.tsx";
 import { GameControls } from "./components/GameControls.tsx";
 import { Statistics } from "./components/Statistics.tsx";
 import { History } from "./components/History.tsx";
-import type { GameState, GameAction } from "../../utils/types.ts";
+import type { GameAction, GameState } from "../../utils/types.ts";
 import { BETTING_PATTERN } from "../../utils/constants.ts";
 import {
   loadDarkMode,
-  saveDarkMode,
   loadGameState,
+  saveDarkMode,
   saveGameState,
 } from "../../utils/localStorage.ts";
 import { updateRootTheme } from "../../utils/theme.ts";
@@ -104,10 +104,9 @@ export default function BaccaratTracker() {
   const handleWin = () => {
     const currentPosition =
       BETTING_PATTERN[gameState.currentPatternIndex].position;
-    const winAmount =
-      currentPosition === "Player"
-        ? gameState.currentBet * playerPayout
-        : gameState.currentBet * bankerPayout;
+    const winAmount = currentPosition === "Player"
+      ? gameState.currentBet * playerPayout
+      : gameState.currentBet * bankerPayout;
 
     setGameState((prev) => ({
       ...prev,
@@ -220,7 +219,11 @@ export default function BaccaratTracker() {
     setStartingBet(settings.startingBet);
     setPlayerPayout(settings.playerPayout);
     setBankerPayout(settings.bankerPayout);
-    setGameState((prev) => ({ ...prev, currentBet: settings.startingBet, startTime: Date.now() }));
+    setGameState((prev) => ({
+      ...prev,
+      currentBet: settings.startingBet,
+      startTime: Date.now(),
+    }));
     setIsInitialized(true);
   };
 

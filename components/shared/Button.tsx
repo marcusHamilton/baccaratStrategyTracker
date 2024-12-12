@@ -1,6 +1,7 @@
 import { JSX } from "preact";
 
-interface ButtonProps extends Omit<JSX.HTMLAttributes<HTMLButtonElement>, 'size'> {
+interface ButtonProps
+  extends Omit<JSX.HTMLAttributes<HTMLButtonElement>, "size"> {
   variant?: "primary" | "secondary" | "success" | "danger" | "warning";
   buttonSize?: "sm" | "md" | "lg";
 }
