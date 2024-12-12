@@ -4,18 +4,36 @@
 
 import * as $_404 from "./routes/_404.tsx";
 import * as $_app from "./routes/_app.tsx";
+import * as $_layout from "./routes/_layout.tsx";
 import * as $index from "./routes/index.tsx";
-import * as $BaccaratStrategyTracker from "./islands/BaccaratStrategyTracker.tsx";
+import * as $BaccaratTracker_BaccaratTracker from "./islands/BaccaratTracker/BaccaratTracker.tsx";
+import * as $BaccaratTracker_components_GameControls from "./islands/BaccaratTracker/components/GameControls.tsx";
+import * as $BaccaratTracker_components_History from "./islands/BaccaratTracker/components/History.tsx";
+import * as $BaccaratTracker_components_HistoryCard from "./islands/BaccaratTracker/components/HistoryCard.tsx";
+import * as $BaccaratTracker_components_InitialSetup from "./islands/BaccaratTracker/components/InitialSetup.tsx";
+import * as $BaccaratTracker_components_Statistics from "./islands/BaccaratTracker/components/Statistics.tsx";
 import type { Manifest } from "$fresh/server.ts";
 
 const manifest = {
   routes: {
     "./routes/_404.tsx": $_404,
     "./routes/_app.tsx": $_app,
+    "./routes/_layout.tsx": $_layout,
     "./routes/index.tsx": $index,
   },
   islands: {
-    "./islands/BaccaratStrategyTracker.tsx": $BaccaratStrategyTracker,
+    "./islands/BaccaratTracker/BaccaratTracker.tsx":
+      $BaccaratTracker_BaccaratTracker,
+    "./islands/BaccaratTracker/components/GameControls.tsx":
+      $BaccaratTracker_components_GameControls,
+    "./islands/BaccaratTracker/components/History.tsx":
+      $BaccaratTracker_components_History,
+    "./islands/BaccaratTracker/components/HistoryCard.tsx":
+      $BaccaratTracker_components_HistoryCard,
+    "./islands/BaccaratTracker/components/InitialSetup.tsx":
+      $BaccaratTracker_components_InitialSetup,
+    "./islands/BaccaratTracker/components/Statistics.tsx":
+      $BaccaratTracker_components_Statistics,
   },
   baseUrl: import.meta.url,
 } satisfies Manifest;
