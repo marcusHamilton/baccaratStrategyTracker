@@ -17,7 +17,7 @@ export const loadGameState = () => {
   return saved ? JSON.parse(saved) : null;
 };
 
-export const saveGameState = (state: any) => {
+export const saveGameState = <T>(state: T) => {
   if (!IS_BROWSER) return;
   localStorage.setItem("baccarat-game-state", JSON.stringify(state));
 };
