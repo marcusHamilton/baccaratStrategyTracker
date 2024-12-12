@@ -32,5 +32,3 @@ jobs:
           project: "baccarat-strategy-tracker"
           entrypoint: "main.ts"
           root: "."
-          
-          
