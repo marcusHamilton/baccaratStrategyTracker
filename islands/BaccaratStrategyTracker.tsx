@@ -7,6 +7,8 @@ type GameAction = {
   bet: number;
   patternIndex: number;
   amount: number;
+  position?: string;
+  timestamp?: number;
 };
 
 type GameState = {
@@ -26,6 +28,65 @@ const BETTING_PATTERN = [
   { position: "Banker", nextIfLost: 5, color: "red" },
   { position: "Banker", nextIfLost: 0, color: "red" },
 ];
+
+const HistoryCard = ({
+  action,
+  index,
+  isDarkMode,
+}: {
+  action: GameAction;
+  index: number;
+  isDarkMode: boolean;
+}) => {
+  const getActionColor = (type: string) => {
+    switch (type) {
+      case "win":
+        return "text-green-500 dark:text-green-400";
+      case "lose":
+        return "text-red-500 dark:text-red-400";
+      case "tie":
+        return "text-yellow-500 dark:text-yellow-400";
+      default:
+        return "";
+    }
+  };
+
+  const cardClass = isDarkMode
+    ? "bg-gray-800 border-gray-700"
+    : "bg-white border-gray-200";
+
+  return (
+    <div
+      className={`p-3 border rounded-lg mb-2 ${cardClass} transition-colors duration-300`}
+    >
+      <div className="flex justify-between items-center">
+        <span className="text-sm font-medium">Hand #{index + 1}</span>
+        <span className={`capitalize font-bold ${getActionColor(action.type)}`}>
+          {action.type}
+        </span>
+      </div>
+      <div className="mt-1 text-sm grid grid-cols-2 gap-2">
+        <div>
+          <span className="text-gray-500 dark:text-gray-400">Bet: </span>
+          <span>${action.bet}</span>
+        </div>
+        <div>
+          <span className="text-gray-500 dark:text-gray-400">Position: </span>
+          <span>{action.position}</span>
+        </div>
+        <div className="col-span-2">
+          <span className="text-gray-500 dark:text-gray-400">Result: </span>
+          <span
+            className={action.amount >= 0 ? "text-green-500" : "text-red-500"}
+          >
+            {action.amount >= 0 ? "+" : ""}
+            {action.amount.toFixed(2)}
+          </span>
+        </div>
+      </div>
+    </div>
+  );
+};
 
 export default function BaccaratStrategyTracker() {
   const [isDarkMode, setIsDarkMode] = useState(true);
@@ -89,7 +150,13 @@ export default function BaccaratStrategyTracker() {
   };
 
   const addToHistory = (action: GameAction) => {
-    const newHistory = [...history.slice(0, historyIndex + 1), action];
+    const currentPosition = BETTING_PATTERN[currentPatternIndex].position;
+    const newAction = {
+      ...action,
+      position: currentPosition,
+      timestamp: Date.now(),
+    };
+    const newHistory = [...history.slice(0, historyIndex + 1), newAction];
     setHistory(newHistory);
     setHistoryIndex(newHistory.length - 1);
   };
@@ -151,6 +218,7 @@ export default function BaccaratStrategyTracker() {
   const handleUndo = () => {
     if (historyIndex >= 0) {
       const lastAction = history[historyIndex];
+
       // Reverse the last action
       switch (lastAction.type) {
         case "win":
@@ -159,47 +227,67 @@ export default function BaccaratStrategyTracker() {
           break;
         case "lose":
           setLosses((prev) => prev - 1);
-          setTotalAmount((prev) => prev - lastAction.amount);
+          setTotalAmount((prev) => prev + lastAction.amount); // Note: Adding because amount is negative
           break;
         case "tie":
           setTies((prev) => prev - 1);
           break;
       }
+
+      // Move history index back
       setHistoryIndex((prev) => prev - 1);
-      // Reset to previous state
-      setCurrentBet(lastAction.bet);
-      setCurrentPatternIndex(lastAction.patternIndex);
+
+      // Reset game state based on the new last action
+      if (historyIndex > 0) {
+        const previousAction = history[historyIndex - 1];
+        if (previousAction.type === "win") {
+          setCurrentBet(startingBet);
+          setCurrentPatternIndex(0);
+        } else {
+          const prevPatternIndex = previousAction.patternIndex;
+          setCurrentBet(previousAction.bet);
+          setCurrentPatternIndex(prevPatternIndex);
+        }
+      } else {
+        // If we're undoing to the start, reset to initial state
+        setCurrentBet(startingBet);
+        setCurrentPatternIndex(0);
+      }
     }
   };
 
   const handleRedo = () => {
     if (historyIndex < history.length - 1) {
       const nextAction = history[historyIndex + 1];
+
       // Reapply the action
       switch (nextAction.type) {
         case "win":
           setWins((prev) => prev + 1);
           setTotalAmount((prev) => prev + nextAction.amount);
+          // After a win, reset to starting bet and first pattern
+          setCurrentBet(startingBet);
+          setCurrentPatternIndex(0);
           break;
         case "lose":
           setLosses((prev) => prev + 1);
           setTotalAmount((prev) => prev + nextAction.amount);
+          // After a loss, double bet and move to next pattern
+          setCurrentBet(nextAction.bet * 2);
+          setCurrentPatternIndex(
+            BETTING_PATTERN[nextAction.patternIndex].nextIfLost
+          );
           break;
         case "tie":
           setTies((prev) => prev + 1);
+          // On tie, keep current bet and pattern
+          setCurrentBet(nextAction.bet);
+          setCurrentPatternIndex(nextAction.patternIndex);
           break;
       }
+
+      // Move history index forward
       setHistoryIndex((prev) => prev + 1);
-      // Update current state
-      if (nextAction.type === "win") {
-        setCurrentBet(startingBet);
-        setCurrentPatternIndex(0);
-      } else if (nextAction.type === "lose") {
-        setCurrentBet((prev) => prev * 2);
-        setCurrentPatternIndex(
-          BETTING_PATTERN[nextAction.patternIndex].nextIfLost
-        );
-      }
     }
   };
 
@@ -322,149 +410,186 @@ export default function BaccaratStrategyTracker() {
     );
   }
 
+  const visibleHistory = history.slice(0, historyIndex + 1);
+
   return (
     <div
-      className={`flex flex-col items-center justify-center min-h-screen ${bgClass} p-4 transition-colors duration-300`}
+      className={`min-h-screen ${bgClass} p-4 transition-colors duration-300`}
     >
-      <div
-        className={`relative w-full max-w-md p-8 rounded-xl border ${cardClass} transition-all duration-300`}
-      >
-        <button
-          onClick={toggleDarkMode}
-          className="absolute top-4 right-4 p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 transition"
-        >
-          {isDarkMode ? "☀️" : "🌙"}
-        </button>
-
-        <div className="pb-2">
-          <h1 className="text-3xl font-bold mb-6 text-center">
-            Baccarat Strategy Tracker
-          </h1>
-        </div>
-
-        {/* Current Bet and Position Display */}
-        <div className="mb-8 text-center space-y-2">
-          <div className="text-xl">
-            <span className="font-semibold">Current Bet:</span>
-            <span className="ml-2 text-2xl font-bold text-green-600 dark:text-green-400">
-              ${currentBet}
-            </span>
-          </div>
-          <div className="text-xl">
-            <span className="font-semibold">Bet On:</span>
-            <span
-              className={`ml-2 px-3 py-1 rounded-full font-bold 
-              ${
-                BETTING_PATTERN[currentPatternIndex].color === "blue"
-                  ? "bg-blue-500 text-white"
-                  : "bg-red-500 text-white"
-              }`}
-            >
-              {BETTING_PATTERN[currentPatternIndex].position}
-            </span>
-          </div>
-        </div>
-
-        {/* Outcome Buttons */}
-        <div className="grid grid-cols-3 gap-4 mb-6">
-          <button
-            onClick={handleWin}
-            className={`${winButtonClass} bg-green-500 text-white p-3 rounded-lg hover:bg-green-600`}
-          >
-            Won
-          </button>
-          <button
-            onClick={handleLose}
-            className={`${loseButtonClass} bg-red-500 text-white p-3 rounded-lg hover:bg-red-600`}
-          >
-            Lost
-          </button>
-          <button
-            onClick={handleTie}
-            className={`${tieButtonClass} bg-yellow-500 text-white p-3 rounded-lg hover:bg-yellow-600`}
-          >
-            Tie
-          </button>
-        </div>
-
-        {/* Undo/Redo Buttons */}
-        <div className="flex justify-center gap-4 mb-6">
-          <button
-            onClick={handleUndo}
-            disabled={historyIndex < 0}
-            className={`px-4 py-2 rounded-lg ${
-              historyIndex < 0
-                ? "opacity-50 cursor-not-allowed"
-                : "hover:bg-gray-700"
-            } bg-gray-600 text-white transition`}
-          >
-            ↩ Undo
-          </button>
-          <button
-            onClick={handleRedo}
-            disabled={historyIndex >= history.length - 1}
-            className={`px-4 py-2 rounded-lg ${
-              historyIndex >= history.length - 1
-                ? "opacity-50 cursor-not-allowed"
-                : "hover:bg-gray-700"
-            } bg-gray-600 text-white transition`}
-          >
-            Redo ↪
-          </button>
-        </div>
-
-        {/* Enhanced Statistics Display */}
-        <div
-          className={`grid grid-cols-2 gap-4 mb-6 p-4 rounded-lg ${
-            isDarkMode
-              ? "bg-gray-800 border border-gray-700"
-              : "bg-gray-100 border border-gray-200"
-          }`}
-        >
-          <div className="text-center col-span-2">
-            <div className="text-sm uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-1">
-              Total Hands
-            </div>
-            <div className="text-2xl font-bold">{totalHands}</div>
-          </div>
-          <div className="text-center">
-            <div className="text-sm uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-1">
-              Win Rate
-            </div>
+      <div className="container mx-auto max-w-6xl">
+        <div className="flex flex-col lg:flex-row gap-6">
+          {/* History Panel - Shows on left for desktop, top for mobile */}
+          <div className="lg:w-1/3 order-2 lg:order-1">
             <div
-              className={`text-2xl font-bold ${
-                winPercentage >= 50
-                  ? "text-green-600 dark:text-green-400"
-                  : "text-red-600 dark:text-red-400"
-              }`}
+              className={`rounded-xl border ${cardClass} transition-all duration-300 p-4 sticky top-4`}
             >
-              {winPercentage}%
+              <h2 className="text-xl font-bold mb-4">Hand History</h2>
+              <div className="overflow-y-auto max-h-[calc(100vh-200px)] space-y-2 scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-transparent hover:scrollbar-thumb-gray-500">
+                {visibleHistory.length === 0 ? (
+                  <div className="text-center text-gray-500 dark:text-gray-400 py-4">
+                    No hands played yet
+                  </div>
+                ) : (
+                  visibleHistory
+                    .slice() // Create a shallow copy to avoid mutating the original array
+                    .reverse() // Reverse the copy to show newest first
+                    .map((action, idx) => (
+                      <HistoryCard
+                        key={action.timestamp}
+                        action={action}
+                        index={visibleHistory.length - 1 - idx}
+                        isDarkMode={isDarkMode}
+                      />
+                    ))
+                )}
+              </div>
             </div>
           </div>
-          <div className="text-center">
-            <div className="text-sm uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-1">
-              Total Profit
-            </div>
-            <div
-              className={`text-2xl font-bold ${
-                totalAmount >= 0
-                  ? "text-green-600 dark:text-green-400"
-                  : "text-red-600 dark:text-red-400"
-              }`}
-            >
-              ${totalAmount.toFixed(2)}
-            </div>
-          </div>
-        </div>
 
-        {/* Reset Option */}
-        <div className="text-center">
-          <button
-            onClick={() => setIsInitialized(false)}
-            className="text-blue-500 dark:text-blue-400 hover:underline transition"
-          >
-            Reset Tracker
-          </button>
+          {/* Main Tracker Panel */}
+          <div className="lg:w-2/3 order-1 lg:order-2">
+            <div
+              className={`relative rounded-xl border ${cardClass} transition-all duration-300 p-8`}
+            >
+              <button
+                onClick={toggleDarkMode}
+                className="absolute top-4 right-4 p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 transition"
+              >
+                {isDarkMode ? "☀️" : "🌙"}
+              </button>
+
+              <div className="pb-2">
+                <h1 className="text-3xl font-bold mb-6 text-center">
+                  Baccarat Strategy Tracker
+                </h1>
+              </div>
+
+              {/* Current Bet and Position Display */}
+              <div className="mb-8 text-center space-y-2">
+                <div className="text-xl">
+                  <span className="font-semibold">Current Bet:</span>
+                  <span className="ml-2 text-2xl font-bold text-green-600 dark:text-green-400">
+                    ${currentBet}
+                  </span>
+                </div>
+                <div className="text-xl">
+                  <span className="font-semibold">Bet On:</span>
+                  <span
+                    className={`ml-2 px-3 py-1 rounded-full font-bold 
+                    ${
+                      BETTING_PATTERN[currentPatternIndex].color === "blue"
+                        ? "bg-blue-500 text-white"
+                        : "bg-red-500 text-white"
+                    }`}
+                  >
+                    {BETTING_PATTERN[currentPatternIndex].position}
+                  </span>
+                </div>
+              </div>
+
+              {/* Outcome Buttons */}
+              <div className="grid grid-cols-3 gap-4 mb-6">
+                <button
+                  onClick={handleWin}
+                  className={`${winButtonClass} bg-green-500 text-white p-3 rounded-lg hover:bg-green-600`}
+                >
+                  Won
+                </button>
+                <button
+                  onClick={handleLose}
+                  className={`${loseButtonClass} bg-red-500 text-white p-3 rounded-lg hover:bg-red-600`}
+                >
+                  Lost
+                </button>
+                <button
+                  onClick={handleTie}
+                  className={`${tieButtonClass} bg-yellow-500 text-white p-3 rounded-lg hover:bg-yellow-600`}
+                >
+                  Tie
+                </button>
+              </div>
+
+              {/* Undo/Redo Buttons */}
+              <div className="flex justify-center gap-4 mb-6">
+                <button
+                  onClick={handleUndo}
+                  disabled={historyIndex < 0}
+                  className={`px-4 py-2 rounded-lg ${
+                    historyIndex < 0
+                      ? "opacity-50 cursor-not-allowed"
+                      : "hover:bg-gray-700"
+                  } bg-gray-600 text-white transition`}
+                >
+                  ↩ Undo
+                </button>
+                <button
+                  onClick={handleRedo}
+                  disabled={historyIndex >= history.length - 1}
+                  className={`px-4 py-2 rounded-lg ${
+                    historyIndex >= history.length - 1
+                      ? "opacity-50 cursor-not-allowed"
+                      : "hover:bg-gray-700"
+                  } bg-gray-600 text-white transition`}
+                >
+                  Redo ↪
+                </button>
+              </div>
+
+              {/* Enhanced Statistics Display */}
+              <div
+                className={`grid grid-cols-2 gap-4 mb-6 p-4 rounded-lg ${
+                  isDarkMode
+                    ? "bg-gray-800 border border-gray-700"
+                    : "bg-gray-100 border border-gray-200"
+                }`}
+              >
+                <div className="text-center col-span-2">
+                  <div className="text-sm uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-1">
+                    Total Hands
+                  </div>
+                  <div className="text-2xl font-bold">{totalHands}</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-sm uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-1">
+                    Win Rate
+                  </div>
+                  <div
+                    className={`text-2xl font-bold ${
+                      winPercentage >= 50
+                        ? "text-green-600 dark:text-green-400"
+                        : "text-red-600 dark:text-red-400"
+                    }`}
+                  >
+                    {winPercentage}%
+                  </div>
+                </div>
+                <div className="text-center">
+                  <div className="text-sm uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-1">
+                    Total Profit
+                  </div>
+                  <div
+                    className={`text-2xl font-bold ${
+                      totalAmount >= 0
+                        ? "text-green-600 dark:text-green-400"
+                        : "text-red-600 dark:text-red-400"
+                    }`}
+                  >
+                    ${totalAmount.toFixed(2)}
+                  </div>
+                </div>
+              </div>
+
+              {/* Reset Option */}
+              <div className="text-center">
+                <button
+                  onClick={() => setIsInitialized(false)}
+                  className="text-blue-500 dark:text-blue-400 hover:underline transition"
+                >
+                  Reset Tracker
+                </button>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
