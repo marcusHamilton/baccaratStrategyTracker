@@ -270,7 +270,7 @@ export default function BaccaratTracker() {
 							</button>
 
 							<h1 class='text-2xl font-bold mb-4 text-center'>
-								Baccarat Strategy Tracker
+								Baccarat Game Tracker
 							</h1>
 
 							<div class='space-y-4'>

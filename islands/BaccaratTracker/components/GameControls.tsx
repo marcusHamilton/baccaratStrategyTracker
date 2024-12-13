@@ -54,14 +54,7 @@ export function GameControls({
 	return (
 		<div class='space-y-6'>
 			{/* Betting position display */}
-			<div class='text-center space-y-2'>
-				<div class='text-lg text-gray-900 dark:text-gray-100'>
-					<span class='font-semibold'>Current Bet:</span>
-					<span class='ml-2 text-xl font-bold text-green-600 dark:text-green-400'>
-						${currentBet}
-					</span>
-				</div>
-
+			<div class='text-center space-y-2 pb-8'>
 				<div
 					class={`p-4 rounded-xl border-2 ${
 						isPlayerBet
@@ -70,10 +63,12 @@ export function GameControls({
 					}`}
 				>
 					<div class='text-base uppercase tracking-wide text-gray-600 dark:text-gray-400 mb-1'>
-						Bet on:
+						Current Bet:
 					</div>
 					<div class='flex items-center justify-center gap-3'>
-						<span class='text-2xl'>{isPlayerBet ? '🧍' : '🏦'}</span>
+                        <span class='text-2xl font-bold text-green-600 dark:text-green-400'>
+						    ${currentBet}
+					    </span>
 						<span
 							class={`text-2xl font-bold ${
 								isPlayerBet
@@ -81,11 +76,9 @@ export function GameControls({
 									: 'text-red-600 dark:text-red-400'
 							}`}
 						>
-							{currentPosition.position}
+						→  {currentPosition.position} <span class='text-2xl'>{isPlayerBet ? '🧍' : ' 🏦'}</span>
+
 						</span>
-					</div>
-					<div class='mt-1 text-sm text-gray-500 dark:text-gray-400'>
-						Win when {currentPosition.position} wins
 					</div>
 				</div>
 			</div>

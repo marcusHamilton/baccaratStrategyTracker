@@ -45,7 +45,7 @@ export function InitialSetup({
 						isDarkMode ? 'text-gray-100' : 'text-gray-900'
 					}`}
 				>
-					Baccarat Strategy Tracker
+					Baccarat Game Tracker
 				</h1>
 
 				<div class='space-y-4'>
