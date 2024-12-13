@@ -115,7 +115,7 @@ export function GameControls({
 						activeButton === 'banker' ? 'scale-95' : ''
 					} relative`}
 				>
-					<span class='text-3xl'>🏦</span>
+					<span class='text-3xl'>🏦  </span>
 					Banker Won
 					{!isPlayerBet && (
 						<span class='absolute right-4 top-1/2 -translate-y-1/2 bg-green-500 text-white px-3 py-1 rounded-full text-sm font-medium shadow-md flex items-center justify-center'>
@@ -126,12 +126,12 @@ export function GameControls({
 
 				<button
 					onClick={() => handleButtonClick(onTie, 'tie')}
-					class={`p-4 rounded-xl text-lg font-bold bg-yellow-500 hover:bg-yellow-600 text-white 
+					class={`p-4 rounded-xl text-lg font-bold bg-yellow-600 hover:bg-yellow-700 text-white 
               transition-all duration-100 transform ${
 						activeButton === 'tie' ? 'scale-95' : ''
 					}`}
 				>
-					<span class='text-2xl'>🤝</span>
+					<span class='text-2xl'>🤝  </span>
 					Tie Game
 				</button>
 			</div>
