@@ -1,16 +1,17 @@
-# Fresh project
+# Getting Started
 
-Your new Fresh project is ready to go. You can follow the Fresh "Getting
-Started" guide here: https://fresh.deno.dev/docs/getting-started
+1. Install Deno:
+    - https://deno.land/manual/getting_started/installation
+    - Or just use `brew install deno`
 
-### Usage
+2. Run the project:
+    - `deno task start`
+    - See it on http://localhost:8000/
 
-Make sure to install Deno: https://deno.land/manual/getting_started/installation
+# Development
+- All changes should be merged into the `development` branch and reviewed before going to master for deployment.
 
-Then start the project:
+# Deployment
 
-```
-deno task start
-```
-
-This will watch the project directory and restart as necessary.
+- The project is automatically delpoyed when changes happen to master.
+- A beta build can be pushed up with `deno task deploy`
